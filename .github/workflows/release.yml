@@ -78,6 +78,10 @@ jobs:
           registry-url: https://registry.npmjs.org
       - run: corepack enable
       - run: pnpm install --frozen-lockfile
+      # Node 22 bundles npm 10.x, which predates trusted publishing (OIDC needs
+      # npm >= 11.5.1). Without this the publish runs with a token-less npm that
+      # cannot mint an OIDC credential and fails rather than falling back.
+      - run: npm install -g npm@latest
       # `prepublishOnly` runs tsdown and the test suite, so the tarball is built
       # from the tagged source and cannot ship a stale `lib/`.
       - run: npm publish --provenance --access public
