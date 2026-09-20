@@ -1,0 +1,83 @@
+# Cut a release: attach the prebuilt tarball, and publish to npm.
+#
+# Two independent jobs, because they have different prerequisites:
+#
+#   tarball  always runs. It packs the plugin and attaches it to the release as
+#            `dsh-job-stop.tgz`, which is the asset the README's tarball install
+#            route points at (`/releases/latest/download/dsh-job-stop.tgz`).
+#            A stable asset name is what makes that URL survive later releases,
+#            so the versioned `pnpm pack` name is renamed before upload.
+#
+#   publish  publishes to npm, and is guarded so a release cannot fail before
+#            the npm side exists. Auth is npm **trusted publishing** over OIDC:
+#            no NPM_TOKEN secret is stored, and `--provenance` attaches an
+#            attestation tying the tarball to this commit. Configure it once —
+#            on npmjs.com, package → Settings → Trusted Publisher → GitHub
+#            Actions, with:
+#
+#                organization or user: gorban
+#                repository:           dsh-job-stop
+#                workflow filename:    release.yml
+#
+#            Then set the repository variable NPM_PUBLISH_ENABLED to `true`
+#            (Settings → Secrets and variables → Actions → Variables). Until
+#            then this job is *skipped*, not failed, so publishing to npm stays
+#            a deliberate step rather than an accident. The token alternative
+#            is to set an NPM_TOKEN secret instead, drop `--provenance`, and add
+#            `NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}` to the publish step.
+#
+# Both jobs run `pnpm build` themselves rather than trusting the committed
+# `lib/`: the committed output is what a `github:` install consumes, and the
+# published artifacts should be the product of the tagged source either way.
+#
+# Action refs are pinned to full commit SHAs with the reviewed major in a
+# trailing comment, so a moved tag cannot change what runs here.
+
+name: release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tarball:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # upload the release asset
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm pack
+      - name: Attach the prebuilt tarball under a stable name
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mv gorban-dsh-job-stop-*.tgz dsh-job-stop.tgz
+          gh release upload "${{ github.event.release.tag_name }}" dsh-job-stop.tgz --clobber
+
+  publish:
+    if: vars.NPM_PUBLISH_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # OIDC: trusted publishing + provenance
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      # `prepublishOnly` runs tsdown and the test suite, so the tarball is built
+      # from the tagged source and cannot ship a stale `lib/`.
+      - run: npm publish --provenance --access public

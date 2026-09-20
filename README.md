@@ -1,5 +1,9 @@
 # @gorban/dsh-job-stop
 
+[![npm](https://img.shields.io/npm/v/@gorban/dsh-job-stop)](https://www.npmjs.com/package/@gorban/dsh-job-stop)
+[![license](https://img.shields.io/npm/l/@gorban/dsh-job-stop)](LICENSE)
+![dsh](https://img.shields.io/badge/dsh-%3E%3D0.1.2--alpha.1-blue)
+
 Stop a running background job from the DeepSeek Harness web session header — hover its row in the background-job list, click the stop sign, confirm in a dialog that restates the full command.
 
 ## What it does
@@ -25,11 +29,27 @@ That is the whole problem this plugin solves, and the design note `2026-08-08-we
 
 ## Install
 
+**From npm** — prebuilt, so the install needs no build step and no `allowBuilds` approval:
+
+```sh
+dsh plugin --profile web add @gorban/dsh-job-stop
+```
+
+**From GitHub** — no npm account involved:
+
 ```sh
 dsh plugin --profile web add github:gorban/dsh-job-stop
 ```
 
+**From a release tarball** — for a host that cannot reach npm or a GitHub source archive:
+
+```sh
+dsh plugin --profile web add https://github.com/gorban/dsh-job-stop/releases/latest/download/dsh-job-stop.tgz
+```
+
 Then restart `dsh` (a plugin row is mounted at profile load). The command adds the dependency and, because `package.json` declares `dsh.bundle`, lists the package in `dsh.profile.bundles` so its `cordis.patch.yml` row is applied.
+
+**Requires dsh `0.1.2-alpha.1` or newer**, declared as `engines.dsh` so the Plugin Market's host-aware filter can read it: both the `jobsBySession` mirror this list renders from and the `ctx.connection.fetch` route seam the stop endpoint is claimed on first shipped in that release.
 
 The shipped `@deepseek-ai/dsh-client-ui-jobs` row can stay enabled: this plugin registers its list under that entry's own slot cell id (`job-list`) at a lower priority, so the header keeps exactly one control and the read-only list is shadowed rather than duplicated. This plugin also renders correctly with that row disabled, because it reads the same `jobsBySession` mirror.
 
@@ -92,6 +112,15 @@ pnpm test       # builds, then runs the host-half behavior suite (node --test)
 ```
 
 Both halves are built by `tsdown` through `build/tsdown.client.ts`, which emits the browser bundle as a `window.__ModuleLoader__.load({ id, factory })` closure whose id is this package's published name — the browser module system rejects a bundle that registers any other id.
+
+### Releasing
+
+```sh
+npm version patch          # or minor/major; commits and tags
+git push --follow-tags
+```
+
+Then publish a GitHub Release for the tag. That one action attaches the prebuilt `dsh-job-stop.tgz` asset (which the tarball install route above points at) and, once `NPM_PUBLISH_ENABLED` is set, publishes to npm. The release notes are what the Plugin Market shows for an update, so write them for users rather than as a commit log. `.github/workflows/release.yml` documents the npm trusted-publisher setup that has to exist once.
 
 The client half is **not** typechecked by the build (the published rc packages on npm predate the slot contract and the `jobsBySession` mirror this plugin targets). To typecheck against a real checkout instead:
 
