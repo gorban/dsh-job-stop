@@ -6,6 +6,10 @@
 
 Stop a running background job from the DeepSeek Harness web session header — hover its row in the background-job list, click the stop sign, confirm in a dialog that restates the full command.
 
+![Hovering a running job row, then confirming the stop](docs/demo.gif)
+
+*Hovering a running row covers its animated state dot with a stop button; the dialog restates the command, kind, status, elapsed time, and job id before anything is cancelled.*
+
 ## What it does
 
 The session header's background-job list becomes actionable for the human, not just readable:
