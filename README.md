@@ -87,12 +87,14 @@ The handler then:
 - id: job-stop
   name: "@gorban/dsh-job-stop"
   config:
-    notice: wakeup   # or: quiet
+    notice: wakeup          # or: quiet
+    maxConsecutiveWakes: 3  # turns this plugin may open per agent between its own inputs
 ```
 
 | Option | Default | Meaning |
 | --- | --- | --- |
 | `notice` | `wakeup` | `wakeup` opens a turn on an idle owning agent so it learns immediately (one model request, the same default `dsh-tool-jobs` ships for its own completion notices). `quiet` leaves the account pending until something else wakes the agent. A busy agent is injected either way. |
+| `maxConsecutiveWakes` | `3` | How many turns this plugin may open on one agent between that agent's own human inputs. Mirrors `dsh-tool-jobs`' bound of the same name and for the same reason: a burst of stops should not spend a model request each. Past the budget the account is injected instead, so the model still learns — it just is not woken for it. |
 
 ## Requirements
 

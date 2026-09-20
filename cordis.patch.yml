@@ -8,7 +8,9 @@
 #
 # `notice` controls how the owning agent learns that a human stopped its job:
 # `wakeup` (default) opens a turn on an idle agent, `quiet` leaves the account
-# pending until the agent is next woken.
+# pending until the agent is next woken. `maxConsecutiveWakes` (default 3)
+# bounds how many turns this plugin may open per agent between that agent's own
+# human inputs, so a burst of stops cannot spend a model request each.
 - insert:
     - id: job-stop
       name: "@gorban/dsh-job-stop"
