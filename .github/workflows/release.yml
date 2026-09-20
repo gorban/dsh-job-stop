@@ -35,10 +35,15 @@
 
 name: release
 
+# Only a published Release drives this. A manual `workflow_dispatch` cannot:
+# it carries no `github.event.release`, so the tarball job's upload has no tag
+# to attach to and the publish job would retry a version npm already has — a
+# run that can only fail. To recover a release whose publish failed, re-run
+# that run from the Actions UI (or `gh run rerun <id> --failed`), which keeps
+# the release context.
 on:
   release:
     types: [published]
-  workflow_dispatch:
 
 permissions:
   contents: read
