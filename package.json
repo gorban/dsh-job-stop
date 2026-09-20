@@ -1,6 +1,6 @@
 {
   "name": "@gorban/dsh-job-stop",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "DeepSeek Harness plugin: stop a running background job from the session-header job list, behind a confirmation dialog.",
   "license": "MIT",
   "author": {
