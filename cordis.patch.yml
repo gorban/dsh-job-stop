@@ -1,0 +1,14 @@
+# @gorban/dsh-job-stop bundle layer.
+#
+# Applied when a profile lists this package in `dsh.profile.bundles` — which
+# `dsh plugin --profile web add <package>` does automatically because
+# package.json declares `dsh.bundle`. The row references the package by name so
+# Node resolution finds the installed code; the plugin's internal Cordis name
+# stays `job-stop`.
+#
+# `notice` controls how the owning agent learns that a human stopped its job:
+# `wakeup` (default) opens a turn on an idle agent, `quiet` leaves the account
+# pending until the agent is next woken.
+- insert:
+    - id: job-stop
+      name: "@gorban/dsh-job-stop"

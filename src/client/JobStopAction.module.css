@@ -1,0 +1,249 @@
+/* Presentation for the background-job list and its stop confirmation.
+ *
+ * The trigger, menu, and row rules mirror the built-in `job-list` entry this
+ * component shadows, so the header control is visually unchanged. The
+ * additions are the dot slot that swaps its animated state dot for a stop
+ * button on row hover, and the dialog's detail list. */
+
+.root {
+  position: relative;
+}
+
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  min-height: 28px;
+  padding: 3px 2px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--dsw-alias-label-tertiary);
+  font-size: 12px;
+  line-height: 18px;
+  cursor: pointer;
+}
+
+.trigger:hover,
+.trigger:focus-visible {
+  color: var(--dsw-alias-label-secondary);
+}
+
+.trigger svg {
+  transition: transform 120ms ease;
+}
+
+.triggerOpen {
+  transform: rotate(180deg);
+}
+
+.triggerDot {
+  flex: none;
+}
+
+.count {
+  margin: 0 5px;
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0;
+  z-index: 100;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  width: 336px;
+  max-width: min(400px, calc(100vw - 32px));
+  max-height: min(420px, calc(100vh - 140px));
+  margin: 0;
+  padding: 4px;
+  overflow: auto;
+  list-style: none;
+  border: 0;
+  border-radius: 20px;
+  background: var(--dsw-specific-menu);
+  --dsh-scrollbar-thumb: var(--dsw-alias-scrollbar-bg-l2);
+  --dsh-scrollbar-thumb-hover: var(--dsw-alias-scrollbar-hover-l2);
+  --dsw-elevation-stroke-color: var(--dsw-alias-border-l1);
+  box-shadow: var(--dsw-elevation-prominent);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 32px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  color: var(--dsw-alias-label-primary);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.rowSettled {
+  color: var(--dsw-alias-label-tertiary);
+}
+
+/* One fixed box per row keeps every row's text aligned whether or not the row
+ * offers the stop affordance, and gives the button a hit area wider than the
+ * 10px dot it covers. */
+.dotSlot {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+}
+
+.rowDot {
+  flex: none;
+  transition: opacity 120ms ease;
+}
+
+/* Resting state: invisible and out of the tab order's pointer path, so a row
+ * without a hover behaves exactly like the read-only list. */
+.stopButton {
+  position: absolute;
+  inset: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--dsw-alias-state-error-primary);
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease;
+}
+
+/* Hovering anywhere on the row reveals the stop button and fades the animated
+ * dot out from under it; keyboard focus reveals it on its own. */
+.row:hover .stopButton,
+.stopButton:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.row:hover .rowDot {
+  opacity: 0;
+}
+
+.stopButton:focus-visible {
+  outline: 2px solid var(--dsw-alias-state-error-primary);
+  outline-offset: 1px;
+}
+
+.kind {
+  flex: none;
+  padding: 0 6px;
+  border-radius: 5px;
+  background: var(--dsw-alias-fill-l2);
+  color: var(--dsw-alias-label-secondary);
+  font-size: 11px;
+  line-height: 18px;
+}
+
+.label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-family: var(--dsw-font-mono);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.status,
+.duration {
+  flex: none;
+  color: var(--dsw-alias-label-tertiary);
+  font-size: 11px;
+  line-height: 18px;
+}
+
+/* A failed job's detail is the producer's raw error text, so it has no bound;
+ * without this it widens the row past the menu instead of eliding like .label. */
+.status {
+  max-width: 40%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.duration {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── confirmation dialog ─────────────────────────────────────────────────── */
+
+/* Same posture as the workspace delete dialog: an outline button whose label
+ * carries the error color, so the destructive action is never the filled
+ * primary the surrounding dialogs use for safe commits. */
+.confirmAction:not(:disabled) {
+  color: var(--dsw-alias-state-error-primary);
+}
+
+.lead {
+  margin: 0 0 12px;
+  color: var(--dsw-alias-label-secondary);
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.details {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 6px 12px;
+  margin: 0;
+}
+
+.term {
+  color: var(--dsw-alias-label-tertiary);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.value,
+.mono,
+.command {
+  margin: 0;
+  color: var(--dsw-alias-label-primary);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.mono,
+.command {
+  font-family: var(--dsw-font-mono);
+}
+
+/* The point of the dialog: the whole command, wrapped rather than elided. */
+.command {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 180px;
+  overflow: auto;
+}
+
+.error {
+  margin-top: 12px;
+  color: var(--dsw-alias-state-error-primary);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rowDot,
+  .stopButton,
+  .trigger svg {
+    transition: none;
+  }
+}
